@@ -1,52 +1,41 @@
-# --- STAGE 1: Install Dependencies & Compile C++ Modules ---
-FROM node:22-alpine AS deps
-WORKDIR /app
-
-# [FIX] Install tools required for bcrypt compilation
-# libc6-compat: Fixes memory alignment issues
-# python3, make, g++: Required to compile bcrypt from source
-RUN apk add --no-cache libc6-compat python3 make g++
-
-COPY package*.json ./
-
-# install dependencies (compiles bcrypt automatically here)
-RUN npm ci
-
-# --- STAGE 2: Build the App ---
+# syntax=docker/dockerfile:1
+# --- STAGE 1: Builder ---
 FROM node:22-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# 1. Copy package files first for layer caching
+COPY package*.json ./
+
+# 2. Cache npm downloads so we don't fetch from the internet every build
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
+
+# 3. Copy source and build your TypeScript app
 COPY . .
 RUN npm run build
 
-# --- STAGE 3: Prepare Production Dependencies ---
-# We need a fresh stage to remove 'devDependencies' but KEEP 'bcrypt'
-FROM node:22-alpine AS prod-deps
-WORKDIR /app
-RUN apk add --no-cache python3 make g++  # Needed again for rebuilding prod-only deps
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+# 4. Remove devDependencies (leaving only pure JS prod dependencies)
+RUN npm prune --production
 
-# --- STAGE 4: Final Runner ---
+# --- STAGE 2: Final Runner ---
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-# Install Tini for process management
-RUN apk add --no-cache tini
-
 ENV NODE_ENV=production
 
-# Security: Create non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nodejs
+# 1. Install Tini for process management (Cached)
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache tini
 
-# Copy built artifacts
-COPY --from=prod-deps --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+# 2. Use the built-in 'node' user from the official image
+# Copy artifacts and assign ownership in a single layer
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/dist ./dist
 
-USER nodejs
+# 3. Drop privileges to the non-root user
+USER node
 
 EXPOSE 4500
 
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["node", "--max-old-space-size=768", "dist/server.js"] 
+CMD ["node", "--max-old-space-size=768", "dist/server.js"]

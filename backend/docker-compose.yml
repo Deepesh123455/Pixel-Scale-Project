@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Sirf API chalegi, baaki sab cloud par hai
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: my_backend_api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-4500}:4500"
+    
+    # Yeh command container ko bataati hai ki saare secrets yahan se uthao
+    env_file:
+      - .env
+    
+    # Optional: Log size limit taaki container bhaari na ho
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        
+    # 🏥 Healthcheck: Docker khud monitor karega ki API zinda hai ya nahi
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4500/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

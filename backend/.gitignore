@@ -22,10 +22,9 @@ uploads/
 # Database (Drizzle Migrations Meta)
 **/migrations/meta/
 **/migrations/_meta/
-drizzle.config.ts.timestamp* ```
-*(Maine `drizzle.config.ts.timestamp*` bhi add kiya hai kyunki kabhi-kabhi Drizzle config run karte waqt aisi temp files ban jati hain).*
+drizzle.config.ts.timestamp* 
 
 
 
----
+
 
