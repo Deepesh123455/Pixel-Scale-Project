@@ -1,0 +1,66 @@
+# Pipeline ke 2 stages define kiye
+stages:
+  - build
+  - deploy
+
+# Global variable jo dono jobs mein kaam aayega
+variables:
+  IMAGE_NAME: $DOCKER_USERNAME/pixelscale-api:latest
+
+# ==========================================
+# 📦 STAGE 1: BUILD & PUSH DOCKER IMAGE
+# ==========================================
+build_image:
+  stage: build
+  # Docker-in-Docker setup
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo "Logging into Docker Hub..."
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - echo "Building the image..."
+    - docker build -t $IMAGE_NAME .
+    - echo "Pushing image to Docker Hub..."
+    - docker push $IMAGE_NAME
+  # Yeh job sirf tab chalegi jab 'main' branch mein push hoga
+  only:
+    - main
+
+# ==========================================
+# 🚀 STAGE 2: DEPLOY TO AWS EC2
+# ==========================================
+deploy_to_ec2:
+  stage: deploy
+  # Lightweight Linux image sirf SSH karne ke liye
+  image: alpine:latest
+  before_script:
+    - echo "Setting up SSH..."
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    # SSH Key ko securely agent mein add karna (tr command Windows line-endings fix karti hai)
+    - echo "$EC2_SSH_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    # EC2 Host ko known_hosts mein add karna taaki prompt na aaye
+    - ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+  script:
+    - echo "Deploying to EC2..."
+    # 1. Server par folder banao (agar nahi hai toh)
+    - ssh ubuntu@$EC2_HOST "mkdir -p ~/pixelscale"
+    
+    # 2. docker-compose.yml file ko server par copy karo
+    - scp docker-compose.yml ubuntu@$EC2_HOST:~/pixelscale/docker-compose.yml
+    
+    # 3. Server ke andar commands run karo
+    - |
+      ssh ubuntu@$EC2_HOST "
+        cd ~/pixelscale &&
+        export DOCKER_IMAGE=$IMAGE_NAME &&
+        docker compose pull &&
+        docker compose up -d &&
+        docker image prune -f
+      "
+    - echo "Deployment Successful! 🎉"
+  only:
+    - main

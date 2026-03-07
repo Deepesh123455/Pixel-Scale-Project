@@ -1,30 +1,57 @@
+# ----------------------------------------------------------------------
 # Dependencies & Build
+# ----------------------------------------------------------------------
 node_modules/
 dist/
 build/
 *.tsbuildinfo
 
+# ----------------------------------------------------------------------
 # Environment variables (Critical)
+# ----------------------------------------------------------------------
 .env
 .env.*
 !.env.example
 
+# ----------------------------------------------------------------------
 # Runtime & OS Files
+# ----------------------------------------------------------------------
 logs
 *.log
 .DS_Store
 Thumbs.db
 
+# ----------------------------------------------------------------------
 # Project Specific (PixelScale)
+# ----------------------------------------------------------------------
 tmp/
 uploads/
 
+# ----------------------------------------------------------------------
 # Database (Drizzle Migrations Meta)
+# ----------------------------------------------------------------------
 **/migrations/meta/
 **/migrations/_meta/
-drizzle.config.ts.timestamp* 
+drizzle.config.ts.timestamp* # ----------------------------------------------------------------------
+# Terraform (Infrastructure as Code)
+# ----------------------------------------------------------------------
+# Local .terraform directories (contains heavy provider plugins)
+**/.terraform/*
 
+# .tfstate files (CRITICAL: Contains your cloud infrastructure map and plain-text secrets)
+*.tfstate
+*.tfstate.*
 
+# Crash log files
+crash.log
+crash.*.log
 
+# Ignore any .tfvars files that might contain local AWS credentials or variable overrides
+*.tfvars
+*.tfvars.json
 
-
+# Ignore override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

@@ -69,3 +69,6 @@ export const claimGuestImagesSchema = z.object({
       .min(1, { message: "Guest ID is required to claim images" }),
   }),
 });
+
+
+

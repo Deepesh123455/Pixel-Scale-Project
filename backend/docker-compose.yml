@@ -3,9 +3,11 @@ version: '3.8'
 services:
   # Sirf API chalegi, baaki sab cloud par hai
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # 🚀 CHANGED: "build" hata diya, ab direct registry se pull karega
+    # DOCKER_IMAGE environment variable hum CI/CD pipeline se bhejenge
+    # Example: your-username/pixelscale-api:latest
+    image: "${DOCKER_IMAGE:-pixelscale-api:latest}"
+    
     container_name: my_backend_api
     restart: unless-stopped
     ports:
@@ -15,7 +17,7 @@ services:
     env_file:
       - .env
     
-    # Optional: Log size limit taaki container bhaari na ho
+    # Log size limit taaki container bhaari na ho
     logging:
       driver: "json-file"
       options:
