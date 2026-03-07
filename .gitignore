@@ -7,11 +7,12 @@ build/
 *.tsbuildinfo
 
 # ----------------------------------------------------------------------
-# Environment variables (Critical)
+# Environment variables & Security (Critical) 🚨
 # ----------------------------------------------------------------------
 .env
 .env.*
 !.env.example
+*.pem      # AWS ki chaabi galti se bhi push nahi honi chahiye!
 
 # ----------------------------------------------------------------------
 # Runtime & OS Files
@@ -20,6 +21,8 @@ logs
 *.log
 .DS_Store
 Thumbs.db
+.vscode/   # VS Code ki local settings
+.idea/
 
 # ----------------------------------------------------------------------
 # Project Specific (PixelScale)
@@ -32,13 +35,15 @@ uploads/
 # ----------------------------------------------------------------------
 **/migrations/meta/
 **/migrations/_meta/
-drizzle.config.ts.timestamp* # ----------------------------------------------------------------------
+drizzle.config.ts.timestamp*
+
+# ----------------------------------------------------------------------
 # Terraform (Infrastructure as Code)
 # ----------------------------------------------------------------------
 # Local .terraform directories (contains heavy provider plugins)
 **/.terraform/*
 
-# .tfstate files (CRITICAL: Contains your cloud infrastructure map and plain-text secrets)
+# .tfstate files (CRITICAL: Contains your cloud infrastructure map and secrets)
 *.tfstate
 *.tfstate.*
 
@@ -46,7 +51,7 @@ drizzle.config.ts.timestamp* # -------------------------------------------------
 crash.log
 crash.*.log
 
-# Ignore any .tfvars files that might contain local AWS credentials or variable overrides
+# Ignore any .tfvars files that might contain local AWS credentials
 *.tfvars
 *.tfvars.json
 
@@ -55,3 +60,5 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+# NOTE: .terraform.lock.hcl file ko ignore NAHI karna hai, wo push honi chahiye!
