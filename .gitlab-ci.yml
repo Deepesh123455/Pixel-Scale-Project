@@ -49,9 +49,14 @@ deploy_to_ec2:
     - echo "Deploying to EC2..."
     - ssh ubuntu@$EC2_HOST "mkdir -p ~/pixelscale"
     
-    # docker-compose.yml ab root mein hai, toh yahan se copy karenge
+    # 1. docker-compose.yml copy karenge
     - scp docker-compose.yml ubuntu@$EC2_HOST:~/pixelscale/docker-compose.yml
     
+    # 🚨 2. YEH DO LINES MISSING THI: GitLab Variable ($PROD_ENV) se .env banakar EC2 par bhejna
+    - echo "$PROD_ENV" > .env
+    - scp .env ubuntu@$EC2_HOST:~/pixelscale/.env
+    
+    # 3. Server ke andar commands chalayenge
     - |
       ssh ubuntu@$EC2_HOST "
         cd ~/pixelscale &&
