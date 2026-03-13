@@ -15,12 +15,12 @@ export const ImageTable = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
 
-    // 1. Removed .notNull() so Guests can upload
+   
     user_id: uuid("user_id").references(() => UserTable.id, {
       onDelete: "cascade",
     }),
 
-    // 2. Added guest_id for non-logged-in users
+   
     guest_id: varchar("guest_id", { length: 255 }),
 
     originalName: varchar("original_name", { length: 255 }).notNull(),
