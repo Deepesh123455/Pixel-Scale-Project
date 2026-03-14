@@ -16,11 +16,11 @@ import { ApiError } from "../../shared/utils/AppError";
 import { UserTable } from "../user/user.schema";
 import { AuthTable } from "../auth/auth.schema";
 import { findOrCreateUser } from "../user/user.controller";
-import { OAuth2Client } from "google-auth-library";
+import { auth, OAuth2Client } from "google-auth-library";
+import { authRepositry } from "./auth.Repository";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
-
 
 const OTP_EXPIRY_SECONDS = 60 * 5; // 5 Minutes
 const RESEND_WAIT_SECONDS = 60; // 1 Minute
@@ -129,17 +129,13 @@ export const verifyOtpAndLoginService = async (email: string, otp: string) => {
 };
 
 export const signUpService = async (email: string, password: string) => {
-  const existingUser = await db.query.UserTable.findFirst({
-    where: eq(UserTable.email, email),
-  });
+  const existingUser = await authRepositry.findUserByEmail(email);
 
   if (existingUser) {
-    const checkAuthPassword = await db.query.AuthTable.findFirst({
-      where: and(
-        eq(AuthTable.userId, existingUser.id),
-        eq(AuthTable.provider, "email_password"),
-      ),
-    });
+    const checkAuthPassword = await authRepositry.findAuthByUserIdAndProvider(
+      existingUser.id,
+      "email_password",
+    );
     if (checkAuthPassword) throw new ApiError("User already exists", 400);
   }
 
@@ -154,18 +150,14 @@ export const LoginViaPasswordService = async (
   if (!email || !password)
     throw new ApiError("Email and Password are required", 400);
 
-  const existingUser = await db.query.UserTable.findFirst({
-    where: eq(UserTable.email, email),
-  });
+  const existingUser = await authRepositry.findUserByEmail(email);
 
   if (!existingUser) throw new ApiError("User not found", 404);
 
-  const checkAuthPassword = await db.query.AuthTable.findFirst({
-    where: and(
-      eq(AuthTable.userId, existingUser.id),
-      eq(AuthTable.provider, "email_password"),
-    ),
-  });
+  const checkAuthPassword = await authRepositry.findAuthByUserIdAndProvider(
+    existingUser.id,
+    "email_password",
+  );
 
   if (!checkAuthPassword || !checkAuthPassword.password) {
     throw new ApiError("User not found or password not set", 404);
@@ -174,21 +166,22 @@ export const LoginViaPasswordService = async (
   const isMatch = await bcrypt.compare(password, checkAuthPassword.password);
   if (!isMatch) throw new ApiError("Incorrect Password", 400);
 
-  await db
-    .update(AuthTable)
-    .set({ lastLogin: new Date() })
-    .where(eq(AuthTable.id, checkAuthPassword.id));
+  await authRepositry.updateAuthRecord(checkAuthPassword.id, {
+    lastLogin: new Date(),
+  });
+  // db
+  //   .update(AuthTable)
+  //   .set({ lastLogin: new Date() })
+  //   .where(eq(AuthTable.id, checkAuthPassword.id));
 
   return await initiateUserSession(existingUser);
 };
 
 export const forgotPasswordService = async (email: string) => {
-  const existingUser = await db.query.AuthTable.findFirst({
-    where: and(
-      eq(AuthTable.providerId, email),
-      eq(AuthTable.provider, "email_password"),
-    ),
-  });
+  const existingUser = await authRepositry.findAuthByProviderIdAndProvider(
+    email,
+    "email_password",
+  );
 
   if (!existingUser) {
     console.log(
@@ -201,13 +194,17 @@ export const forgotPasswordService = async (email: string) => {
   const hashedToken = generateCrypto(token);
   const tokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-  await db
-    .update(AuthTable)
-    .set({
-      passwordResetToken: hashedToken,
-      passwordResetExpires: tokenExpiry,
-    })
-    .where(eq(AuthTable.id, existingUser.id));
+  await authRepositry.updateAuthRecord(existingUser.id, {
+    passwordResetToken: hashedToken,
+    passwordResetExpires: tokenExpiry,
+  });
+  // db
+  //   .update(AuthTable)
+  //   .set({
+  //     passwordResetToken: hashedToken,
+  //     passwordResetExpires: tokenExpiry,
+  //   })
+  //   .where(eq(AuthTable.id, existingUser.id));
 
   await emailQueue.add("reset-password-job", {
     email: email,
@@ -329,7 +326,7 @@ export const updatePasswordService = async (
     })
     .where(eq(AuthTable.id, existingUser.id));
 
-  // Force Logout on all devices 
+  // Force Logout on all devices
   const userSessionKey = generateRedisKey("USER_ID", userId);
   const refreshTokenKey = generateRedisKey("AUTH_TOKEN", userId);
 
@@ -418,5 +415,3 @@ export const refreshAccessTokenService = async (
   // 4. New Session (Rotation)
   return await initiateUserSession(user);
 };
-
-
