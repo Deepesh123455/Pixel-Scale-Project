@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { eq, and, gt } from "drizzle-orm";
 import { db } from "../../config/db";
 import { redisClient } from "../../config/redis";
-import { generateRedisKey } from "../../config/redisKey"; // Ensure this matches your file path
+import { generateRedisKey } from "../../config/redisKey";
 import { generateOtp } from "../../shared/utils/otpGenerator";
 import { generateCrypto } from "../../shared/utils/crypto.utils";
 import {
@@ -21,14 +21,13 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-// --- Configuration ---
+
 const OTP_EXPIRY_SECONDS = 60 * 5; // 5 Minutes
 const RESEND_WAIT_SECONDS = 60; // 1 Minute
 const USER_SESSION_EXPIRY = 3600; // 1 Hour (Standardized for Middleware)
 const REFRESH_TOKEN_DAYS = 7; // 7 Days
 
 /**
- * 🛠️ HELPER: Centralizes Session Creation
  * - Generates Tokens
  * - Calculates Jitter
  * - Saves Session (USER_ID) & Refresh Token (AUTH_TOKEN) to Redis in a Pipeline
@@ -330,7 +329,7 @@ export const updatePasswordService = async (
     })
     .where(eq(AuthTable.id, existingUser.id));
 
-  // --- Force Logout on all devices ---
+  // Force Logout on all devices 
   const userSessionKey = generateRedisKey("USER_ID", userId);
   const refreshTokenKey = generateRedisKey("AUTH_TOKEN", userId);
 

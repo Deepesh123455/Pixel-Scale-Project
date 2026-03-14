@@ -14,9 +14,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ============================================================
-// 🎨 Base Email Layout (Reused for all emails)
-// ============================================================
+
+//Base Email Layout (Reused for all emails)
+
 const getBaseEmailLayout = (content: string) => {
   return `
 <!DOCTYPE html>
@@ -60,9 +60,9 @@ const getBaseEmailLayout = (content: string) => {
   `;
 };
 
-// ============================================================
-// 🛠 Generic Send Email Function (Handles try-catch & transport)
-// ============================================================
+
+// Generic Send Email Function (Handles try-catch & transport)
+
 const sendEmail = async (to: string, subject: string, htmlContent: string) => {
   try {
     const info = await transporter.sendMail({
@@ -79,9 +79,9 @@ const sendEmail = async (to: string, subject: string, htmlContent: string) => {
   }
 };
 
-// ============================================================
+
 // 1. Send OTP Email
-// ============================================================
+
 export const sendOTPEmail = async (email: string, otp: string) => {
   const content = `
     <h2 style="color: #374151; font-size: 20px; font-weight: 600;">Secure Your Account</h2>
@@ -97,9 +97,9 @@ export const sendOTPEmail = async (email: string, otp: string) => {
   return await sendEmail(email, "Your Verification Code - PixelScale", content);
 };
 
-// ============================================================
+
 // 2. Send Reset Password Email
-// ============================================================
+
 export const sendResetPasswordEmail = async (email: string, token: string) => {
   // Ensure FRONTEND_URL is set (fallback to localhost if missing)
   const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -122,9 +122,9 @@ export const sendResetPasswordEmail = async (email: string, token: string) => {
   return await sendEmail(email, "🔒 Reset Your Password - PixelScale", content);
 };
 
-// ============================================================
+
 // 3. Send Password Updated Alert
-// ============================================================
+
 export const sendPasswordUpdatedEmail = async (email: string) => {
   const content = `
     <h2 style="color: #374151; font-size: 20px; font-weight: 600;">Security Alert 🔒</h2>

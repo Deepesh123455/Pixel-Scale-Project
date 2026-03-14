@@ -24,7 +24,7 @@ import {
   GoogleLoginType,
 } from "./auth.validation";
 
-// 🔒 SECURITY: Secure Cookie Configuration
+// SECURITY: Secure Cookie Configuration
 const cookieOptions: CookieOptions = {
   httpOnly: true, // Prevents XSS (JavaScript cannot access cookie)
   secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
@@ -33,7 +33,7 @@ const cookieOptions: CookieOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Days
 };
 
-// --- Helper to reduce redundancy in Controller ---
+//  Helper to reduce redundancy in Controller 
 const sendAuthResponse = (
   res: Response,
   result: { user: any; tokens: any },
@@ -181,7 +181,7 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
 
   await logoutService(userId);
 
-  // 🍪 Clear the cookie from the browser
+  // Clear the cookie from the browser
   res.clearCookie("jwt", cookieOptions);
 
   res.json({

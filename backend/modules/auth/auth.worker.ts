@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Ye tumhara apna interface hai (Payload ke liye)
+// Ye interface hai (Payload ke liye)
 interface EmailPayloadData {
   email: string;
   otp: string;
@@ -25,7 +25,7 @@ const startWorker = async () => {
     await channel.prefetch(1);
     console.log("👷 Notification Worker Ready");
 
-    // ✅ msg ka type 'ConsumeMessage | null' hota hai
+    // msg ka type 'ConsumeMessage | null' hota hai
     channel.consume(QUEUE_NAME, async (msg: ConsumeMessage | null) => {
       if (!msg) {
         console.error("⚠️ Consumer cancelled.");
@@ -33,7 +33,7 @@ const startWorker = async () => {
       }
 
       try {
-        // ✅ msg.content Buffer hai, usko string bana ke parse karo
+        // msg.content Buffer hai, usko string bana ke parse karo
         const rawContent = msg.content.toString();
         const data = JSON.parse(rawContent) as EmailPayloadData; // Type assertion
 

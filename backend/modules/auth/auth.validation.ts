@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// --- Shared Password Rules (DRY Principle) ---
+// Shared Password Rules (DRY Principle) 
 const passwordRules = z
   .string()
   .trim()
@@ -19,7 +19,7 @@ const passwordRules = z
     message: "Password must contain at least one special character (!@#$%^&*)",
   });
 
-// --- Schemas ---
+//Schemas
 
 export const sendOtpSchema = z.object({
   body: z.object({
@@ -81,7 +81,7 @@ export const forgotPasswordSchema = z.object({
   }),
 });
 
-// --- UPDATED: Handling Tokens in Params OR Body ---
+// UPDATED: Handling Tokens in Params OR Body 
 export const verifyResetTokenSchema = z
   .object({
     params: z
@@ -100,7 +100,7 @@ export const verifyResetTokenSchema = z
     path: ["params", "token"],
   });
 
-// --- UPDATED: Handling Tokens in Params OR Body ---
+// UPDATED: Handling Tokens in Params OR Body 
 export const resetPasswordSchema = z
   .object({
     params: z
@@ -130,14 +130,14 @@ export const updatePasswordSchema = z.object({
     }),
 });
 
-// --- NEW: Google Login Schema ---
+// NEW: Google Login Schema 
 export const googleLoginSchema = z.object({
   body: z.object({
     token: z.string().trim().min(1, "Google ID token is required"),
   }),
 });
 
-// --- Types ---
+// Types 
 export type SendOtpType = z.infer<typeof sendOtpSchema>["body"];
 export type VerifyType = z.infer<typeof verifySchema>["body"];
 export type LoginViaPasswordType = z.infer<

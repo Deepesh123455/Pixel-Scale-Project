@@ -20,19 +20,19 @@ export const AuthTable = pgTable(
     // Nullable Password field
     password: varchar("password", { length: 255 }),
 
-    // ✅ NEW: Store OAuth tokens or extra provider details here
+    // NEW: Store OAuth tokens or extra provider details here
     metadata: jsonb("metadata"), 
 
     passwordResetToken: varchar("password_reset_token", { length: 255 }),
 
     passwordResetExpires: timestamp("password_reset_expires"),
     
-    // ✅ NEW: Track when this specific method was last used
+    // NEW: Track when this specific method was last used
     lastLogin: timestamp("last_login"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     
-    // ✅ NEW: Standard practice for mutable tables
+    //NEW: Standard practice for mutable tables
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => {
