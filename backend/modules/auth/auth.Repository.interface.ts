@@ -8,6 +8,6 @@ export interface IAuthRepository {
   
   updateAuthRecord(authId: string, updateData: Partial<any>): Promise<void>;
   
-  // Note: Assuming findOrCreateUser is moved here from your user.controller
+ 
   
 }

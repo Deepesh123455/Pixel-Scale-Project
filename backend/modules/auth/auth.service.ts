@@ -261,15 +261,21 @@ export const resetPasswordService = async (
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-  await db
-    .update(AuthTable)
-    .set({
-      password: hashedPassword,
-      passwordResetToken: null,
-      passwordResetExpires: null,
-      updatedAt: new Date(),
-    })
-    .where(eq(AuthTable.id, existingUser.id));
+  await authRepositry.updateAuthRecord(existingUser.id, {
+    password: hashedPassword,
+    passwordResetToken: null,
+    passwordResetExpires: null,
+    updatedAt: new Date(),
+  })
+  // db
+  //   .update(AuthTable)
+  //   .set({
+  //     password: hashedPassword,
+  //     passwordResetToken: null,
+  //     passwordResetExpires: null,
+  //     updatedAt: new Date(),
+  //   })
+  //   .where(eq(AuthTable.id, existingUser.id));
 
   await emailQueue.add("security-alert", {
     email: existingUser.providerId,
@@ -288,12 +294,13 @@ export const updatePasswordService = async (
     throw new ApiError("Current Password and New Password are required", 400);
   }
 
-  const existingUser = await db.query.AuthTable.findFirst({
-    where: and(
-      eq(AuthTable.userId, userId),
-      eq(AuthTable.provider, "email_password"),
-    ),
-  });
+  const existingUser = await authRepositry.findAuthByUserIdAndProvider(userId, "email_password");
+  // db.query.AuthTable.findFirst({
+  //   where: and(
+  //     eq(AuthTable.userId, userId),
+  //     eq(AuthTable.provider, "email_password"),
+  //   ),
+  // });
 
   if (!existingUser || !existingUser.password) {
     throw new ApiError("User not found or uses social login", 404);
@@ -311,13 +318,17 @@ export const updatePasswordService = async (
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-  await db
-    .update(AuthTable)
-    .set({
-      password: hashedPassword,
-      updatedAt: new Date(),
-    })
-    .where(eq(AuthTable.id, existingUser.id));
+  await authRepositry.updateAuthRecord(existingUser.id, {
+    password: hashedPassword,
+    updatedAt: new Date(),
+  })
+  // db
+  //   .update(AuthTable)
+  //   .set({
+  //     password: hashedPassword,
+  //     updatedAt: new Date(),
+  //   })
+  //   .where(eq(AuthTable.id, existingUser.id));
 
   // Force Logout on all devices
   const userSessionKey = generateRedisKey("USER_ID", userId);
@@ -399,9 +410,10 @@ export const refreshAccessTokenService = async (
   await validateRefreshToken(incomingRefreshToken, storedHashedToken);
 
   // 3. Database lookup
-  const user = await db.query.UserTable.findFirst({
-    where: eq(UserTable.id, decoded.sub),
-  });
+  const user = await authRepositry.findUserById(decoded.sub);
+  // db.query.UserTable.findFirst({
+  //   where: eq(UserTable.id, decoded.sub),
+  // });
 
   if (!user) throw new ApiError("User not found", 404);
 
