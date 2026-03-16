@@ -6,7 +6,7 @@ import { db } from "../../config/db";
 import { ImageTable } from "./image.schema";
 import { imageQueueEvents } from "./image.queue";
 
-// Services
+
 import {
   uploadImageService,
   getImageDetailService,
@@ -14,7 +14,7 @@ import {
   getHdDownloadUrlService
 } from "./image.service";
 
-// 📤 1. UPLOAD CONTROLLER
+
 export const uploadImage = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   const guestId = (req.headers["x-guest-id"] as string) || req.body.guestId;
