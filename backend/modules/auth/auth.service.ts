@@ -192,19 +192,12 @@ export const forgotPasswordService = async (email: string) => {
 
   const token = crypto.randomBytes(32).toString("hex");
   const hashedToken = generateCrypto(token);
-  const tokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-
+  const tokenExpiry = new Date(Date.now() + 10 * 60 * 1000); 
   await authRepositry.updateAuthRecord(existingUser.id, {
     passwordResetToken: hashedToken,
     passwordResetExpires: tokenExpiry,
   });
-  // db
-  //   .update(AuthTable)
-  //   .set({
-  //     passwordResetToken: hashedToken,
-  //     passwordResetExpires: tokenExpiry,
-  //   })
-  //   .where(eq(AuthTable.id, existingUser.id));
+ 
 
   await emailQueue.add("reset-password-job", {
     email: email,
